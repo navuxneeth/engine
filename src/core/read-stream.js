@@ -85,11 +85,11 @@ class ReadStream {
      * @returns {string} The string.
      */
     readChars(numChars) {
-        let result = '';
+        const chars = new Array(numChars);
         for (let i = 0; i < numChars; ++i) {
-            result += this.readChar();
+            chars[i] = this.readChar();
         }
-        return result;
+        return chars.join('');
     }
 
     /**
@@ -155,19 +155,15 @@ class ReadStream {
      */
     readLine() {
         const view = this.dataView;
-        let result = '';
-        while (true) {
-            if (this.offset >= view.byteLength) {
-                break;
-            }
-
+        const chars = [];
+        while (this.offset < view.byteLength) {
             const c = String.fromCharCode(this.readU8());
             if (c === '\n') {
                 break;
             }
-            result += c;
+            chars.push(c);
         }
-        return result;
+        return chars.join('');
     }
 }
 
