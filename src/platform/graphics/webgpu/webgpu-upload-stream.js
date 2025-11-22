@@ -163,7 +163,7 @@ class WebgpuUploadStream {
             });
             DebugHelper.setLabel(buffer, `UploadStream-Staging-${id++}`);
         }
-        // Reused buffers are already mapped (from update() method) and large enough
+        // Note: Reused buffers from the pool are already mapped (mapped in update() after GPU completes)
 
         // Write to mapped range (non-blocking)
         const mappedRange = buffer.getMappedRange();

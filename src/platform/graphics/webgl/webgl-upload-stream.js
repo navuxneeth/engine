@@ -155,7 +155,7 @@ class WebglUploadStream {
         let pboInfo = this.availablePBOs.pop();
         if (!pboInfo) {
             const pbo = gl.createBuffer();
-            pboInfo = { pbo, size: 0 };  // Size will be set by bufferData below
+            pboInfo = { pbo, size: 0 };  // Initial size; actual size tracked when added to pending/available
         }
 
         // Orphan + bufferSubData pattern
