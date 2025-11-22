@@ -40,19 +40,26 @@ class WebgpuUploadStream {
     }
 
     /**
-     * Handles device lost event.
-     * TODO: Implement proper WebGPU device lost handling if needed.
+     * Handles device lost event by clearing all staging buffer arrays.
+     * Note: Unlike WebGL, we don't need to manually destroy buffers as the GPU context
+     * is already lost.
      *
      * @protected
      */
     _onDeviceLost() {
-        // WebGPU device lost handling not yet implemented
+        // Clear arrays without trying to destroy buffers (context is already lost)
+        this.availableStagingBuffers.length = 0;
+        this.pendingStagingBuffers.length = 0;
     }
 
     destroy() {
         this._destroyed = true;
         this.availableStagingBuffers.forEach(buffer => buffer.destroy());
         this.pendingStagingBuffers.forEach(buffer => buffer.destroy());
+
+        // Clear arrays after cleanup
+        this.availableStagingBuffers.length = 0;
+        this.pendingStagingBuffers.length = 0;
     }
 
     /**
@@ -146,16 +153,17 @@ class WebgpuUploadStream {
         Debug.assert(byteSize % 4 === 0, `WebGPU upload size in bytes (${byteSize}) must be a multiple of 4 for copyBufferToBuffer`);
 
         // Get or create a staging buffer (guaranteed to be large enough after recycling)
-        const buffer = this.availableStagingBuffers.pop() ?? (() => {
+        let buffer = this.availableStagingBuffers.pop();
+        if (!buffer) {
             // @ts-ignore - wgpu is available on WebgpuGraphicsDevice
-            const newBuffer = this.uploadStream.device.wgpu.createBuffer({
+            buffer = this.uploadStream.device.wgpu.createBuffer({
                 size: byteSize,
                 usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
                 mappedAtCreation: true
             });
-            DebugHelper.setLabel(newBuffer, `UploadStream-Staging-${id++}`);
-            return newBuffer;
-        })();
+            DebugHelper.setLabel(buffer, `UploadStream-Staging-${id++}`);
+        }
+        // Reused buffers are already mapped (from update() method) and large enough
 
         // Write to mapped range (non-blocking)
         const mappedRange = buffer.getMappedRange();

@@ -42,6 +42,10 @@ class WebglUploadStream {
             if (item.sync) gl.deleteSync(item.sync);
             gl.deleteBuffer(item.pbo);
         });
+
+        // Clear arrays after cleanup
+        this.availablePBOs.length = 0;
+        this.pendingPBOs.length = 0;
     }
 
     /**
@@ -148,10 +152,11 @@ class WebglUploadStream {
         const height = size / width;
 
         // Get or create a PBO (guaranteed to be large enough after update)
-        const pboInfo = this.availablePBOs.pop() ?? (() => {
+        let pboInfo = this.availablePBOs.pop();
+        if (!pboInfo) {
             const pbo = gl.createBuffer();
-            return { pbo, size: byteSize };
-        })();
+            pboInfo = { pbo, size: 0 };  // Size will be set by bufferData below
+        }
 
         // Orphan + bufferSubData pattern
         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, pboInfo.pbo);

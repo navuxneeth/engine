@@ -73,7 +73,10 @@ class UploadStream {
      * a multiple of 4.
      */
     upload(data, target, offset = 0, size = data.length) {
-        this.impl?.upload(data, target, offset, size);
+        if (!this.impl) {
+            return;
+        }
+        this.impl.upload(data, target, offset, size);
     }
 
     /**
@@ -82,7 +85,9 @@ class UploadStream {
      * @private
      */
     _onDeviceLost() {
-        this.impl?._onDeviceLost?.();
+        if (this.impl?._onDeviceLost) {
+            this.impl._onDeviceLost();
+        }
     }
 }
 
