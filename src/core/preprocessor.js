@@ -461,11 +461,11 @@ class Preprocessor {
                                 if (Number.isInteger(count)) {
 
                                     // add the include count times
-                                    let result = '';
+                                    const parts = new Array(count);
                                     for (let i = 0; i < count; i++) {
-                                        result += includeSource.replace(LOOP_INDEX, String(i));
+                                        parts[i] = includeSource.replace(LOOP_INDEX, String(i));
                                     }
-                                    includeSource = result;
+                                    includeSource = parts.join('');
 
                                 } else {
                                     console.error(`Include Count identifier "${countIdentifier}" not resolved while preprocessing ${Preprocessor.sourceName} on line:\n ${source.substring(match.index, match.index + 100)}...`, { originalSource: originalSource, source: source });
